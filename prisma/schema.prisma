@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  fullname  String?
+  phone     String?
+  dob       DateTime?
+  
+  // Email Verification & Password Reset
+  isEmailVerified       Boolean  @default(false)
+  emailVerificationOTP  String?
+  otpExpiry             DateTime?
+  passwordResetOTP      String?
+  passwordResetToken    String?
+  passwordResetExpiry   DateTime?
+  
+  // Onboarding / Profile Data
+  gender               String?
+  height               Float?
+  weight               Float?
+  healthGoals          String[]
+  supplementExperience String?
+  appGoals             String[]
+  
+  // Extended Onboarding
+  age                  Int?
+  averageSleep         Float?
+  dietType             String?
+  activityLevel        String?
+  caffeineIntake       String? // Kept for backward compatibility, but habits can cover this
+  habits               Json?   // Stores array of { type: String, frequency: String }
+  medicalConditions    String[]
+  currentSupplements   String[]
+
+  roleId    Int
+  role      Role     @relation(fields: [roleId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique // e.g., 'ADMIN', 'USER'
+  permissions Permission[]
+  users       User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id    Int    @id @default(autoincrement())
+  name  String @unique // e.g., 'READ_USER', 'WRITE_USER'
+  roles Role[]
+
+  @@map("permissions")
+}
