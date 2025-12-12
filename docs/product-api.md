@@ -4,7 +4,7 @@ Base URL: `http://localhost:3000/api/products`
 
 ## 1. Create Product
 
-Adds a new product to the global catalog.
+Adds a new product to the global catalog AND automatically adds it to the creating user's stack.
 
 - **Endpoint**: `/`
 - **Method**: `POST`
@@ -22,22 +22,22 @@ Adds a new product to the global catalog.
 | `servings`        | Int    | No       | Number of servings             |
 | `pricePerServing` | Float  | No       | Cost per serving               |
 | `totalPrice`      | Float  | Yes      | Total price                    |
-| `currency`        | String | No       | Currency symbol (Default: `$`) |
-| `format`          | String | No       | e.g. "Tablets", "Capsules"     |
+| `currency`        | String | No       | Currency (Default: `$`)        |
+| `format`          | String | No       | e.g. "Tablets"                 |
+| **Stack Fields**  |        |          | _Optional fields for Schedule_ |
+| `healthGoal`      | String | No       | e.g. "Immunity"                |
+| `morningDose`     | Int    | No       | Morning quantity               |
+| `isDaily`         | Bool   | No       | Default: `true`                |
 
 #### Example Request
 
 ```json
 {
-  "name": "Extra Strength Ashwagandha",
-  "category": "Eskstrakty",
-  "rating": 9.5,
-  "ratingLabel": "Excellent",
-  "servings": 90,
-  "pricePerServing": 0.44,
-  "totalPrice": 39,
-  "format": "Tablets",
-  "currency": "$"
+  "name": "My Custom Vits",
+  "category": "General",
+  "totalPrice": 20,
+  "healthGoal": "Energy",
+  "morningDose": 1
 }
 ```
 

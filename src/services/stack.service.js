@@ -4,21 +4,37 @@ import ApiError from '../utils/ApiError.js';
 const prisma = new PrismaClient();
 
 const addToStack = async (userId, data) => {
-    // Check if product exists
-    const product = await prisma.product.findUnique({
-        where: { id: data.productId },
-    });
+    let productId = data.productId;
+    let productDetails = data.product;
 
-    if (!product) {
-        throw new ApiError(404, 'Product not found');
+    if (productId) {
+        // Option 1: Using existing Product ID
+        const product = await prisma.product.findUnique({
+            where: { id: productId },
+        });
+
+        if (!product) {
+            throw new ApiError(404, 'Product not found');
+        }
+    } else if (productDetails) {
+        // Option 2: Creating new Product from details
+        // Check if name already exists to avoid duplication? 
+        // For now, assuming we always create (or we could try to find first)
+        // User asked to "Keep productId in stack", implies creating a record.
+        const newProduct = await prisma.product.create({
+            data: productDetails,
+        });
+        productId = newProduct.id;
+    } else {
+        throw new ApiError(400, 'Product ID or details required');
     }
 
-    // Check if already in stack
+    // Check if linked already
     const existingItem = await prisma.stackItem.findUnique({
         where: {
             userId_productId: {
                 userId,
-                productId: data.productId,
+                productId,
             },
         },
     });
@@ -27,10 +43,14 @@ const addToStack = async (userId, data) => {
         throw new ApiError(400, 'Product already in stack');
     }
 
+    // Clean data for StackItem (remove 'product')
+    const { product: _p, productId: _pid, ...stackData } = data;
+
     return await prisma.stackItem.create({
         data: {
-            ...data,
+            ...stackData,
             userId,
+            productId,
         },
         include: {
             product: true,

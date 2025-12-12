@@ -2,10 +2,39 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const createProduct = async (data) => {
-    return await prisma.product.create({
-        data,
+const createProduct = async (userId, data) => {
+    const {
+        addToStack,
+        healthGoal,
+        isDaily,
+        morningDose,
+        midDayDose,
+        eveningDose,
+        nightDose,
+        aiSuggestion,
+        ...productData
+    } = data;
+
+    const product = await prisma.product.create({
+        data: productData,
     });
+
+    // Automatically add to user's stack (Requirement: "jb product add ho tb wo product stack mebe add hojae")
+    await prisma.stackItem.create({
+        data: {
+            userId,
+            productId: product.id,
+            healthGoal,
+            isDaily: isDaily ?? true, // Default to true if not provided
+            morningDose: morningDose ?? 0,
+            midDayDose: midDayDose ?? 0,
+            eveningDose: eveningDose ?? 0,
+            nightDose: nightDose ?? 0,
+            aiSuggestion,
+        },
+    });
+
+    return product;
 };
 
 const deleteProduct = async (id) => {

@@ -12,19 +12,20 @@ Adds a product to the user's personal stack with a schedule.
 
 ### Request Body
 
-| Field          | Type    | Required | Description                       |
-| :------------- | :------ | :------- | :-------------------------------- |
-| `productId`    | Int     | Yes      | ID of the product to add          |
-| `healthGoal`   | String  | No       | e.g. "Bone & Joint"               |
-| `isDaily`      | Boolean | No       | is daily schedule (Default: true) |
-| `withFood`     | Boolean | No       | Take with food (Default: false)   |
-| `morningDose`  | Int     | No       | Quantity for morning (Default: 0) |
-| `midDayDose`   | Int     | No       | Quantity for mid-day (Default: 0) |
-| `eveningDose`  | Int     | No       | Quantity for evening (Default: 0) |
-| `nightDose`    | Int     | No       | Quantity for night (Default: 0)   |
-| `aiSuggestion` | String  | No       | AI note for intake                |
+| Field          | Type    | Required | Description                                                          |
+| :------------- | :------ | :------- | :------------------------------------------------------------------- |
+| `productId`    | Int     | Optional | ID of an _existing_ product (Required if `product` not provided)     |
+| `product`      | Object  | Optional | Full product details to create new (Required if `productId` missing) |
+| `healthGoal`   | String  | No       | e.g. "Bone & Joint"                                                  |
+| `isDaily`      | Boolean | No       | is daily schedule (Default: true)                                    |
+| `withFood`     | Boolean | No       | Take with food (Default: false)                                      |
+| `morningDose`  | Int     | No       | Quantity for morning (Default: 0)                                    |
+| `midDayDose`   | Int     | No       | Quantity for mid-day (Default: 0)                                    |
+| `eveningDose`  | Int     | No       | Quantity for evening (Default: 0)                                    |
+| `nightDose`    | Int     | No       | Quantity for night (Default: 0)                                      |
+| `aiSuggestion` | String  | No       | AI note for intake                                                   |
 
-#### Example Request
+#### Example Request (With Existing Product)
 
 ```json
 {
@@ -34,6 +35,20 @@ Adds a product to the user's personal stack with a schedule.
   "withFood": false,
   "morningDose": 2,
   "nightDose": 1
+}
+```
+
+#### Example Request (Creating New Product on the Fly)
+
+```json
+{
+  "product": {
+    "name": "My Custom Vitamin",
+    "totalPrice": 15.0,
+    "category": "General"
+  },
+  "healthGoal": "Immunity",
+  "morningDose": 1
 }
 ```
 

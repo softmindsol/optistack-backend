@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import ApiError from '../utils/ApiError.js';
 import catchAsync from '../utils/catchAsync.js';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient(); 
 
 const auth = catchAsync(async (req, res, next) => {
     // 1) Getting token and check of it's there
