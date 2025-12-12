@@ -21,7 +21,7 @@ The password reset system uses a **6-digit OTP** sent via email (instead of a to
 ```
 
 **What Happens**:
-
+ 
 - System generates a 6-digit OTP (e.g., "123456")
 - OTP is saved to database with 10-minute expiration
 - Email is sent to user with the OTP code

@@ -41,6 +41,12 @@ model User {
   medicalConditions    String[]
   currentSupplements   String[]
 
+  dailyCheckIns        DailyCheckIn[]
+  stackItems           StackItem[]
+  stackLogs            StackLog[]
+  journals             Journal[]
+  moodLogs             MoodLog[]
+
   roleId    Int
   role      Role     @relation(fields: [roleId], references: [id])
   createdAt DateTime @default(now())
@@ -64,4 +70,146 @@ model Permission {
   roles Role[]
 
   @@map("permissions")
+}
+
+enum TodaysFeeling {
+  GREAT
+  GOOD
+  OKAY
+  LOW
+  ANGRY
+}
+
+enum SideEffect {
+  NAUSEA
+  ANXIETY
+  FATIGUE
+  HEADACHE
+  JITTERS
+  NO_SIDE_EFFECT
+}
+
+model DailyCheckIn {
+  id                 Int           @id @default(autoincrement())
+  todaysFeeling      TodaysFeeling
+  didTakeAnythingNew Boolean
+  anySideEffect      SideEffect
+  sleepLastNight     Int
+  sleepQuality       Int
+  energyLevel        Int
+  focus              Int
+  wellnessImpact     String
+
+  userId             Int
+  user               User          @relation(fields: [userId], references: [id])
+
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+
+  @@map("daily_check_ins")
+}
+
+model Product {
+  id              Int      @id @default(autoincrement())
+  name            String
+  category        String   // "Eskstrakty" (Extracts)
+  image           String?  // URL to image
+  rating          Float?   // 9.5
+  ratingLabel     String?  // "Excellent"
+  servings        Int?     // 90
+  pricePerServing Float?   // 0.44
+  totalPrice      Float    // 39
+  currency        String   @default("$")
+  format          String?  // "Tablets"
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("products")
+  stackItems      StackItem[]
+}
+
+model StackItem {
+  id            Int      @id @default(autoincrement())
+  
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  
+  productId     Int
+  product       Product  @relation(fields: [productId], references: [id])
+
+  // Health Goal (Image 3)
+  healthGoal    String?
+
+  // Schedule (Image 2)
+  isDaily       Boolean  @default(true)
+  withFood      Boolean  @default(false)
+  
+  // Doses (Image 2 shows: Morning, Mid-day, Evening, Night)
+  morningDose   Int?     @default(0)
+  midDayDose    Int?     @default(0)
+  eveningDose   Int?     @default(0)
+  nightDose     Int?     @default(0)
+
+  aiSuggestion  String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, productId])
+  @@map("stack_items")
+  stackLogs     StackLog[]
+}
+
+model StackLog {
+  id          Int       @id @default(autoincrement())
+  
+  stackItemId Int
+  stackItem   StackItem @relation(fields: [stackItemId], references: [id])
+  
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  
+  date        DateTime  // The date for this log (e.g. 2025-12-12T00:00:00.000Z)
+  timeSlot    String    // "MORNING", "MID_DAY", "EVENING", "NIGHT"
+  status      String    @default("COMPLETED") // "COMPLETED", "SKIPPED"
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+
+  @@unique([stackItemId, date, timeSlot])
+  @@map("stack_logs")
+}
+
+model Journal {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  
+  date      DateTime @default(now())
+  title     String
+  dailyNote String   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("journals")
+}
+
+model MoodLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  
+  date        DateTime @default(now())
+  todayMode   String   // User didn't specify enum, but implied mood. keeping string for flexibility or we can use existing TodaysFeeling
+  energyLevel Int      // 1 to 5
+  dailyNote   String?  @db.Text
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("mood_logs")
 }

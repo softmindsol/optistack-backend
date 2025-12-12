@@ -61,6 +61,17 @@ const forgotPassword = catchAsync(async (req, res) => {
     });
 });
 
+
+const verifyPasswordResetOTP = catchAsync(async (req, res) => {
+    const { email, otp } = req.body;
+    const result = await authService.verifyPasswordResetOTP(email, otp);
+
+    res.status(200).json({
+        status: 'success',
+        message: result.message,
+    });
+});
+
 const resetPassword = catchAsync(async (req, res) => {
     const { email, otp, newPassword } = req.body;
     const result = await authService.resetPassword(email, otp, newPassword);
@@ -78,5 +89,6 @@ export default {
     sendOTP,
     verifyOTP,
     forgotPassword,
+    verifyPasswordResetOTP,
     resetPassword,
 };

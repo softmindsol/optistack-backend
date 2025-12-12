@@ -17,6 +17,7 @@ router.post('/verify-otp', validate(authValidation.verifyOTP), authController.ve
 
 // Password reset routes
 router.post('/forgot-password', validate(authValidation.forgotPassword), authController.forgotPassword);
+router.post('/verify-password-reset-otp', validate(authValidation.verifyPasswordResetOTP), authController.verifyPasswordResetOTP);
 router.post('/reset-password', validate(authValidation.resetPassword), authController.resetPassword);
 
 export default router;

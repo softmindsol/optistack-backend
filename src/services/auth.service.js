@@ -227,6 +227,32 @@ const forgotPassword = async (email) => {
     return { message: 'If the email exists, a password reset code has been sent.', otp }; // Remove otp in production
 };
 
+
+// Verify Password Reset OTP
+const verifyPasswordResetOTP = async (email, otp) => {
+    const user = await prisma.user.findUnique({
+        where: { email },
+    });
+
+    if (!user) {
+        throw new ApiError(400, 'Invalid credentials');
+    }
+
+    if (!user.passwordResetOTP || !user.passwordResetExpiry) {
+        throw new ApiError(400, 'No password reset request found. Please request a new code.');
+    }
+
+    if (new Date() > user.passwordResetExpiry) {
+        throw new ApiError(400, 'Reset code has expired. Please request a new one.');
+    }
+
+    if (user.passwordResetOTP !== otp) {
+        throw new ApiError(400, 'Invalid reset code');
+    }
+
+    return { message: 'OTP verified successfully' };
+};
+
 // Reset Password with OTP
 const resetPassword = async (email, otp, newPassword) => {
     const user = await prisma.user.findUnique({
@@ -271,5 +297,6 @@ export default {
     sendVerificationOTP,
     verifyOTP,
     forgotPassword,
+    verifyPasswordResetOTP,
     resetPassword,
 };

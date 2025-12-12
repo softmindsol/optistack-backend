@@ -222,9 +222,9 @@ Verifies the OTP sent to user's email.
 
 ---
 
-## 6. Forgot Password
+## 6. Forgot Password (Send OTP)
 
-Initiates password reset process by sending a reset token.
+Initiates password reset process by sending a 6-digit OTP to the email.
 
 - **Endpoint**: `/forgot-password`
 - **Method**: `POST`
@@ -249,20 +249,55 @@ Initiates password reset process by sending a reset token.
 ```json
 {
   "status": "success",
-  "message": "If the email exists, a password reset link has been sent.",
+  "message": "If the email exists, a password reset code has been sent.",
   "data": {
-    "resetToken": "abc123def456ghi789"
+    "otp": "123456"
   }
 }
 ```
 
-**Note**: Reset token is valid for 1 hour.
+**Note**: OTP is valid for 10 minutes.
 
 ---
 
-## 7. Reset Password
+## 7. Verify Password Reset OTP
 
-Resets user password using the reset token.
+Verifies that the OTP is valid before allowing password reset.
+
+- **Endpoint**: `/verify-password-reset-otp`
+- **Method**: `POST`
+- **Auth Required**: No
+
+### Request Body
+
+| Field   | Type   | Required | Description                    |
+| :------ | :----- | :------- | :----------------------------- |
+| `email` | String | Yes      | User's email                   |
+| `otp`   | String | Yes      | 6-digit OTP from previous step |
+
+#### Example Request
+
+```json
+{
+  "email": "jane.doe@example.com",
+  "otp": "123456"
+}
+```
+
+### Response (200 OK)
+
+```json
+{
+  "status": "success",
+  "message": "OTP verified successfully"
+}
+```
+
+---
+
+## 8. Reset Password
+
+Resets user password using the OTP and new password.
 
 - **Endpoint**: `/reset-password`
 - **Method**: `POST`
@@ -270,16 +305,18 @@ Resets user password using the reset token.
 
 ### Request Body
 
-| Field         | Type   | Required | Description                            |
-| :------------ | :----- | :------- | :------------------------------------- |
-| `token`       | String | Yes      | Reset token from email/forgot-password |
-| `newPassword` | String | Yes      | New password (min 6 chars)             |
+| Field         | Type   | Required | Description                |
+| :------------ | :----- | :------- | :------------------------- |
+| `email`       | String | Yes      | User's email               |
+| `otp`         | String | Yes      | Valid OTP from email       |
+| `newPassword` | String | Yes      | New password (min 6 chars) |
 
 #### Example Request
 
 ```json
 {
-  "token": "abc123def456ghi789",
+  "email": "jane.doe@example.com",
+  "otp": "123456",
   "newPassword": "newSecurePass123"
 }
 ```

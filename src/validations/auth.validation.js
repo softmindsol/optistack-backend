@@ -60,6 +60,13 @@ const resetPassword = {
     }),
 };
 
+const verifyPasswordResetOTP = {
+    body: z.object({
+        email: z.string().email(),
+        otp: z.string().length(6),
+    }),
+};
+
 export default {
     register,
     login,
@@ -67,4 +74,5 @@ export default {
     verifyOTP,
     forgotPassword,
     resetPassword,
+    verifyPasswordResetOTP,
 };
