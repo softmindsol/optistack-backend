@@ -50,7 +50,14 @@ Adds a new product to the global catalog AND automatically adds it to the creati
   "category": "Eskstrakty",
   "totalPrice": 39,
   "currency": "$",
-  ...
+  "stackItemId": 10,
+  "stackItem": {
+     "id": 10,
+     "userId": 1,
+     "productId": 1,
+     "isDaily": true,
+     ...
+  }
 }
 ```
 
@@ -91,6 +98,10 @@ Removes a product from the catalog.
 - **Method**: `DELETE`
 - **Auth Required**: Yes (Bearer Token)
 
-### Response (204 No Content)
+### Response (200 OK)
 
-_No body returned on success._
+```json
+{
+  "message": "Product deleted successfully"
+}
+```

@@ -47,12 +47,36 @@ model User {
   journals             Journal[]
   moodLogs             MoodLog[]
 
+  // Subscription
+  subscriptionPlan     String   @default("FREE") // "FREE", "PRO"
+  subscriptionStatus   String   @default("ACTIVE") // "ACTIVE", "EXPIRED", "CANCELLED"
+  subscriptionExpiry   DateTime?
+  
+  transactions         Transaction[]
+
   roleId    Int
   role      Role     @relation(fields: [roleId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model Transaction {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id])
+  
+  amount          Float
+  currency        String   @default("USD")
+  type            String   // "SUBSCRIPTION_PAYMENT", "REFUND"
+  status          String   // "PENDING", "COMPLETED", "FAILED"
+  paymentMethod   String?  // "CREDIT_CARD", "PAYPAL"
+  transactionDate DateTime @default(now())
+  
+  description     String?  // e.g. "Pro Plan - Monthly"
+
+  @@map("transactions")
 }
 
 model Role {
@@ -137,7 +161,7 @@ model StackItem {
   user          User     @relation(fields: [userId], references: [id])
   
   productId     Int
-  product       Product  @relation(fields: [productId], references: [id])
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   // Health Goal (Image 3)
   healthGoal    String?

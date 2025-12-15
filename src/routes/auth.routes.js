@@ -15,6 +15,9 @@ router.get('/me', auth, authController.getMe);
 router.post('/send-otp', validate(authValidation.sendOTP), authController.sendOTP);
 router.post('/verify-otp', validate(authValidation.verifyOTP), authController.verifyOTP);
 
+// Profile Management
+router.patch('/profile', auth, validate(authValidation.updateProfile), authController.updateProfile);
+
 // Password reset routes
 router.post('/forgot-password', validate(authValidation.forgotPassword), authController.forgotPassword);
 router.post('/verify-password-reset-otp', validate(authValidation.verifyPasswordResetOTP), authController.verifyPasswordResetOTP);

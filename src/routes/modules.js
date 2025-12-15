@@ -5,6 +5,7 @@ import productRoutes from './product.routes.js';
 import stackRoutes from './stack.routes.js';
 import stackLogRoutes from './stackLog.routes.js';
 import journalRoutes from './journal.routes.js';
+import subscriptionRoutes from './subscription.routes.js';
 
 const router = express.Router();
 
@@ -32,6 +33,10 @@ const defaultRoutes = [
     {
         path: '/journal',
         route: journalRoutes,
+    },
+    {
+        path: '/subscription',
+        route: subscriptionRoutes,
     },
 ];
 

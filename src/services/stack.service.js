@@ -68,9 +68,22 @@ const getStack = async (userId) => {
 };
 
 const updateStackItem = async (userId, id, data) => {
-    const stackItem = await prisma.stackItem.findUnique({
+    // Try to find by direct StackItem ID first
+    let stackItem = await prisma.stackItem.findUnique({
         where: { id },
     });
+
+    // If not found, try to find by ProductID (Composite key: userId + productId)
+    if (!stackItem) {
+        stackItem = await prisma.stackItem.findUnique({
+            where: {
+                userId_productId: {
+                    userId,
+                    productId: id, // Treating 'id' param as potential productId
+                },
+            },
+        });
+    }
 
     if (!stackItem) {
         throw new ApiError(404, 'Stack item not found');
@@ -81,7 +94,7 @@ const updateStackItem = async (userId, id, data) => {
     }
 
     return await prisma.stackItem.update({
-        where: { id },
+        where: { id: stackItem.id },
         data,
         include: {
             product: true,

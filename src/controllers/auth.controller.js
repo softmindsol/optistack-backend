@@ -82,6 +82,14 @@ const resetPassword = catchAsync(async (req, res) => {
     });
 });
 
+const updateProfile = catchAsync(async (req, res) => {
+    const user = await authService.updateProfile(req.user.id, req.body);
+    res.status(200).json({
+        status: 'success',
+        data: { user },
+    });
+});
+
 export default {
     register,
     login,
@@ -91,4 +99,5 @@ export default {
     forgotPassword,
     verifyPasswordResetOTP,
     resetPassword,
+    updateProfile,
 };

@@ -19,7 +19,7 @@ Marks a specific stack item as COMPLETED or SKIPPED for a specific time slot.
 | `date`        | String | No       | YYYY-MM-DD (Default: today)                         |
 | `status`      | String | No       | Enum: `COMPLETED`, `SKIPPED` (Default: `COMPLETED`) |
 
-#### Example Request
+#### Example Request 
 
 ```json
 {

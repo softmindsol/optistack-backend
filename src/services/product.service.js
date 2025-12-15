@@ -19,13 +19,13 @@ const createProduct = async (userId, data) => {
         data: productData,
     });
 
-    // Automatically add to user's stack (Requirement: "jb product add ho tb wo product stack mebe add hojae")
-    await prisma.stackItem.create({
+    // Automatically add to user's stack
+    const stackItem = await prisma.stackItem.create({
         data: {
             userId,
             productId: product.id,
             healthGoal,
-            isDaily: isDaily ?? true, // Default to true if not provided
+            isDaily: isDaily ?? true,
             morningDose: morningDose ?? 0,
             midDayDose: midDayDose ?? 0,
             eveningDose: eveningDose ?? 0,
@@ -34,7 +34,7 @@ const createProduct = async (userId, data) => {
         },
     });
 
-    return product;
+    return { ...product, stackItemId: stackItem.id, stackItem };
 };
 
 const deleteProduct = async (id) => {

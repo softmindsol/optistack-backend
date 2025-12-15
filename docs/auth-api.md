@@ -62,6 +62,8 @@ Creates a new user account with optional onboarding profile data.
       "email": "jane.doe@example.com",
       "fullname": "Jane Doe",
       "roleId": 2,
+      "subscriptionPlan": "FREE",
+      "subscriptionStatus": "ACTIVE",
       "createdAt": "2023-11-01T10:00:00.000Z",
       ...
     }
@@ -149,7 +151,68 @@ Retrieves the profile of the currently logged-in user.
 
 ---
 
-## 4. Send Email Verification OTP
+## 4. Update Profile & Health Preferences
+
+Updates user profile details and health preferences. Partial updates are allowed.
+
+- **Endpoint**: `/profile`
+- **Method**: `PATCH`
+- **Auth Required**: Yes (Bearer Token)
+
+### Request Body
+
+_All fields are optional. Only valid fields will be updated._
+
+| Field                | Type          | Description                                           |
+| :------------------- | :------------ | :---------------------------------------------------- |
+| `fullname`           | String        | Full name                                             |
+| `email`              | String        | Valid email address                                   |
+| `phone`              | String        | Contact number                                        |
+| `dob`                | String        | Date of birth (ISO Date String)                       |
+| `age`                | Number        | User's age                                            |
+| `gender`             | String        | Gender                                                |
+| `height`             | Number        | Height in cm                                          |
+| `weight`             | Number        | Weight in kg                                          |
+| `healthGoals`        | Array<String> | List of health goals                                  |
+| `averageSleep`       | Number        | Sleep hours per night                                 |
+| `dietType`           | String        | e.g. "Vegan", "Keto"                                  |
+| `activityLevel`      | String        | e.g. "Sedentary", "Active"                            |
+| `habits`             | Array<Object> | e.g. `[{ "type": "Nicotine", "frequency": "Daily" }]` |
+| `medicalConditions`  | Array<String> | List of conditions                                    |
+| `currentSupplements` | Array<String> | List of current supplements                           |
+
+#### Example Request
+
+```json
+{
+  "fullname": "Alex Sullivan Updated",
+  "weight": 75,
+  "healthGoals": ["Improve Sleep", "Muscle Gain"],
+  "activityLevel": "Active"
+}
+```
+
+### Response (200 OK)
+
+```json
+{
+  "status": "success",
+  "data": {
+    "user": {
+      "id": 1,
+      "email": "jane.doe@example.com",
+      "fullname": "Alex Sullivan Updated",
+      "weight": 75,
+      "healthGoals": ["Improve Sleep", "Muscle Gain"],
+      ...
+    }
+  }
+}
+```
+
+---
+
+## 5. Send Email Verification OTP
 
 Sends a 6-digit OTP to the user's email for verification.
 
@@ -187,7 +250,7 @@ Sends a 6-digit OTP to the user's email for verification.
 
 ---
 
-## 5. Verify Email OTP
+## 6. Verify Email OTP
 
 Verifies the OTP sent to user's email.
 
@@ -222,7 +285,7 @@ Verifies the OTP sent to user's email.
 
 ---
 
-## 6. Forgot Password (Send OTP)
+## 7. Forgot Password (Send OTP)
 
 Initiates password reset process by sending a 6-digit OTP to the email.
 
@@ -260,7 +323,7 @@ Initiates password reset process by sending a 6-digit OTP to the email.
 
 ---
 
-## 7. Verify Password Reset OTP
+## 8. Verify Password Reset OTP
 
 Verifies that the OTP is valid before allowing password reset.
 
@@ -295,7 +358,7 @@ Verifies that the OTP is valid before allowing password reset.
 
 ---
 
-## 8. Reset Password
+## 9. Reset Password
 
 Resets user password using the OTP and new password.
 

@@ -51,6 +51,8 @@ const register = async (userData) => {
             age, gender, height, weight, averageSleep, dietType,
             activityLevel, habits, caffeineIntake, medicalConditions, currentSupplements,
             roleId: userRole.id,
+            subscriptionPlan: 'FREE',
+            subscriptionStatus: 'ACTIVE',
         },
         include: {
             role: true,
@@ -291,6 +293,39 @@ const resetPassword = async (email, otp, newPassword) => {
     return { message: 'Password reset successfully' };
 };
 
+const updateProfile = async (userId, updateBody) => {
+    // 1) Verify user exists
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+    });
+
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+
+    // 2) Check email uniqueness if email is being updated
+    if (updateBody.email && updateBody.email !== user.email) {
+        const existingEmail = await prisma.user.findUnique({
+            where: { email: updateBody.email },
+        });
+        if (existingEmail) {
+            throw new ApiError(400, 'Email already in use');
+        }
+        // Ideally reset verification status here: updateBody.isEmailVerified = false;
+    }
+
+    // 3) Update user
+    const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: updateBody,
+    });
+
+    // Remove password
+    updatedUser.password = undefined;
+
+    return updatedUser;
+};
+
 export default {
     register,
     login,
@@ -299,4 +334,5 @@ export default {
     forgotPassword,
     verifyPasswordResetOTP,
     resetPassword,
+    updateProfile,
 };

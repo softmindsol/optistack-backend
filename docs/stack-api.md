@@ -92,30 +92,43 @@ Retrieves all items in the user's stack.
 
 ---
 
-## 3. Update Stack Item
+## 3. Update Schedule & Health Goal
 
-Updates schedule, health goal, or doses for a stack item.
+Fine-tune the dosage schedule or update the health goal for a specific item in your stack.
 
 - **Endpoint**: `/:id`
 - **Method**: `PATCH`
 - **Auth Required**: Yes (Bearer Token)
+- **ID Parameter**: Can be either the `stackItemId` OR the `productId`.
 
 ### Request Body
 
-_Any of the fields from "Add to Stack" (except `productId`)._
+_Partial update allowed. Only send fields you want to change._
+
+| Field          | Type    | Required | Description           |
+| :------------- | :------ | :------- | :-------------------- |
+| `healthGoal`   | String  | No       | e.g. "Energy & Focus" |
+| `isDaily`      | Boolean | No       | is daily schedule     |
+| `withFood`     | Boolean | No       | Take with food        |
+| `morningDose`  | Int     | No       | Quantity for morning  |
+| `midDayDose`   | Int     | No       | Quantity for mid-day  |
+| `eveningDose`  | Int     | No       | Quantity for evening  |
+| `nightDose`    | Int     | No       | Quantity for night    |
+| `aiSuggestion` | String  | No       | User notes or AI tips |
 
 #### Example Request
 
 ```json
 {
-  "morningDose": 1,
-  "nightDose": 0
+  "healthGoal": "Better Sleep",
+  "nightDose": 2,
+  "morningDose": 0
 }
 ```
 
 ### Response (200 OK)
 
-_Returns updated stack item._
+_Returns the updated stack item with product details._
 
 ---
 

@@ -67,6 +67,31 @@ const verifyPasswordResetOTP = {
     }),
 };
 
+const updateProfile = {
+    body: z.object({
+        fullname: z.string().min(1).optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        dob: z.string().optional(),
+        age: z.number().int().optional(),
+        gender: z.string().optional(),
+        height: z.number().optional(),
+        weight: z.number().optional(),
+        healthGoals: z.array(z.string()).optional(),
+        // Extra fields in case they want to update them too
+        averageSleep: z.number().optional(),
+        dietType: z.string().optional(),
+        activityLevel: z.string().optional(),
+        habits: z.array(z.object({
+            type: z.string(),
+            frequency: z.string()
+        })).optional(),
+        caffeineIntake: z.string().optional(),
+        medicalConditions: z.array(z.string()).optional(),
+        currentSupplements: z.array(z.string()).optional(),
+    }),
+};
+
 export default {
     register,
     login,
@@ -75,4 +100,5 @@ export default {
     forgotPassword,
     resetPassword,
     verifyPasswordResetOTP,
+    updateProfile,
 };

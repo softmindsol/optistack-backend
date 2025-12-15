@@ -9,7 +9,7 @@ const createProduct = catchAsync(async (req, res) => {
 
 const deleteProduct = catchAsync(async (req, res) => {
     await productService.deleteProduct(parseInt(req.params.id));
-    res.status(204).send();
+    res.status(200).send({ message: "Product deleted successfully" });
 });
 
 const getProducts = catchAsync(async (req, res) => {
