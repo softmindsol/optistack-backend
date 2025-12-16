@@ -6,6 +6,7 @@ import stackRoutes from './stack.routes.js';
 import stackLogRoutes from './stackLog.routes.js';
 import journalRoutes from './journal.routes.js';
 import subscriptionRoutes from './subscription.routes.js';
+import aiRoutes from './ai.routes.js';
 
 const router = express.Router();
 
@@ -37,6 +38,10 @@ const defaultRoutes = [
     {
         path: '/subscription',
         route: subscriptionRoutes,
+    },
+    {
+        path: '/ai',
+        route: aiRoutes,
     },
 ];
 
