@@ -131,7 +131,7 @@ model DailyCheckIn {
   updatedAt          DateTime      @updatedAt
 
 
-  @@map("daily_check_ins")
+  @@map("daily_check_ins") 
 }
 
 model Product {

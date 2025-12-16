@@ -41,15 +41,21 @@ const register = async (userData) => {
     }
 
     // Create user
+    // Remove currentSupplements from user creation data
+    const { currentSupplements: supplementsList, ...userDataWithoutSupplements } = userData;
+
+    // Create user
     const newUser = await prisma.user.create({
         data: {
+            // Using extracted data without currentSupplements
             email,
             password: hashedPassword,
             fullname,
             phone,
             dob: dob ? new Date(dob) : undefined,
             age, gender, height, weight, averageSleep, dietType,
-            activityLevel, habits, caffeineIntake, medicalConditions, currentSupplements,
+            activityLevel, habits, caffeineIntake, medicalConditions,
+            // currentSupplements is explicitly excluded
             roleId: userRole.id,
             subscriptionPlan: 'FREE',
             subscriptionStatus: 'ACTIVE',
@@ -58,6 +64,59 @@ const register = async (userData) => {
             role: true,
         },
     });
+
+    // Handle Supplement Stack Creation
+    if (supplementsList && Array.isArray(supplementsList) && supplementsList.length > 0) {
+        // Iterate through each supplement object
+        for (const suppData of supplementsList) {
+            // Ensure valid object
+            if (!suppData || typeof suppData !== 'object' || !suppData.name) continue;
+
+            const suppName = suppData.name;
+
+            // 1. Check if product exists globally (by name)
+            let product = await prisma.product.findFirst({
+                where: { name: { equals: suppName, mode: 'insensitive' } },
+            });
+
+            // 2. If not found, create a new Product using provided details
+            if (!product) {
+                product = await prisma.product.create({
+                    data: {
+                        name: suppName,
+                        category: suppData.category || 'Onboarding', // Default if missing
+                        image: suppData.image, // Optional
+                        rating: suppData.rating, // Optional
+                        ratingLabel: suppData.ratingLabel, // Optional
+                        servings: suppData.servings, // Optional
+                        pricePerServing: suppData.pricePerServing, // Optional
+                        totalPrice: suppData.totalPrice || 0, // Required in schema, verify default
+                        currency: suppData.currency || '$',
+                        format: suppData.format,
+                    },
+                });
+            }
+
+            // 3. Add to User's Stack
+            const existingStackItem = await prisma.stackItem.findFirst({
+                where: {
+                    userId: newUser.id,
+                    productId: product.id,
+                },
+            });
+
+            if (!existingStackItem) {
+                await prisma.stackItem.create({
+                    data: {
+                        userId: newUser.id,
+                        productId: product.id,
+                        isDaily: true,
+                        morningDose: 1,
+                    },
+                });
+            }
+        }
+    }
 
     // Remove password from output
     newUser.password = undefined;
@@ -94,10 +153,7 @@ const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Generate random reset token
-const generateResetToken = () => {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-};
+
 
 // Send OTP for email verification
 const sendVerificationOTP = async (email) => {

@@ -22,7 +22,18 @@ const register = {
         })).optional(),
         caffeineIntake: z.string().optional(),
         medicalConditions: z.array(z.string()).optional(),
-        currentSupplements: z.array(z.string()).optional(),
+        currentSupplements: z.array(z.object({
+            name: z.string(),
+            category: z.string().optional(),
+            image: z.string().optional(),
+            rating: z.number().optional(),
+            ratingLabel: z.string().optional(),
+            servings: z.number().optional(),
+            pricePerServing: z.number().optional(),
+            totalPrice: z.number().optional(),
+            currency: z.string().optional(),
+            format: z.string().optional(),
+        })).optional(),
     }),
 };
 

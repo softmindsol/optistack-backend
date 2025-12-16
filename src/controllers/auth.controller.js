@@ -89,7 +89,7 @@ const updateProfile = catchAsync(async (req, res) => {
         data: { user },
     });
 });
-
+ 
 export default {
     register,
     login,

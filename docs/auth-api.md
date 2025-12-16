@@ -35,7 +35,7 @@ Creates a new user account with optional onboarding profile data.
 
 ```json
 {
-  "email": "jane.doe@example.com",
+  "email": "arfan.arshad@example.com",
   "password": "securePassword123",
   "fullname": "Jane Doe",
   "dob": "1995-05-20",
@@ -47,7 +47,20 @@ Creates a new user account with optional onboarding profile data.
   "activityLevel": "Moderate",
   "caffeineIntake": "Once a day",
   "medicalConditions": ["Seasonal Allergies"],
-  "currentSupplements": ["Vitamin D", "Iron"]
+  "currentSupplements": [
+    {
+      "name": "Nicotine",
+      "category": "MyProtein",
+      "image": "https://example.com/omega3.jpg",
+      "rating": 9.5,
+      "ratingLabel": "Excellent",
+      "servings": 90,
+      "pricePerServing": 0.44,
+      "totalPrice": 39.99,
+      "currency": "$",
+      "format": "Softgels"
+    }
+  ]
 }
 ```
 

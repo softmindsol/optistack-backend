@@ -33,11 +33,24 @@ Adds a new product to the global catalog AND automatically adds it to the creati
 
 ```json
 {
-  "name": "My Custom Vits",
-  "category": "General",
-  "totalPrice": 20,
-  "healthGoal": "Energy",
-  "morningDose": 1
+  "name": "Omega 3 Fish Oil",
+  "category": "MyProtein",
+  "image": "https://example.com/omega3.jpg",
+  "rating": 9.5,
+  "ratingLabel": "Excellent",
+  "servings": 90,
+  "pricePerServing": 0.44,
+  "totalPrice": 39.99,
+  "currency": "$",
+  "format": "Softgels",
+
+  "healthGoal": "Heart Health",
+  "morningDose": 1,
+  "midDayDose": 0,
+  "eveningDose": 1,
+  "nightDose": 0,
+  "withFood": true,
+  "isDaily": true
 }
 ```
 
