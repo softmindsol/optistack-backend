@@ -22,7 +22,7 @@ const cancelSubscription = catchAsync(async (req, res) => {
     const subscription = await subscriptionService.cancelSubscription(req.user.id);
     res.status(200).json({
         status: 'success',
-        message: 'Subscription cancelled successfully',
+        message: 'Subscription cancelled successfully', 
         data: subscription,
     });
 });

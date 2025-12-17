@@ -1,12 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import ApiError from '../utils/ApiError.js';
-
 import Stripe from 'stripe';
 
 const prisma = new PrismaClient();
-// Initialize Stripe (Ensure STRIPE_SECRET_KEY is in .env)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// 1. Get Subscription Details
 const getSubscription = async (userId) => {
     const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -14,131 +13,99 @@ const getSubscription = async (userId) => {
             subscriptionPlan: true,
             subscriptionStatus: true,
             subscriptionExpiry: true,
-            transactions: {
-                orderBy: { transactionDate: 'desc' },
-                take: 5, // Last 5 transactions
-            },
+            stripeCustomerId: true, // TODO: Uncomment after running migration
         },
     });
 
-    if (!user) {
-        throw new ApiError(404, 'User not found');
-    }
-
+    if (!user) throw new ApiError(404, 'User not found');
     return user;
 };
 
+// 2. Upgrade to Pro (Create Recurring Subscription)
 const upgradeToPro = async (userId, { paymentMethodId }) => {
-    // 1. Verify user exists
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new ApiError(404, 'User not found');
 
-    if (!user) {
-        throw new ApiError(404, 'User not found');
+    // A. Customer Creation (Agar pehle se nahi hai)
+    let customerId = user.stripeCustomerId;
+
+    if (!customerId) {
+        const customer = await stripe.customers.create({
+            email: user.email,
+            name: user.fullname,
+            metadata: { userId: userId.toString() }
+        });
+        customerId = customer.id;
+
+        // DB update karo taake next time naya customer na bane
+        await prisma.user.update({
+            where: { id: userId },
+            data: { stripeCustomerId: customerId }
+        });
     }
 
-    // Check if already PRO
-    if (user.subscriptionPlan === 'PRO' && user.subscriptionStatus === 'ACTIVE') {
-        // Optional: Extend subscription instead of erroring?
-        // For now, simple error
-        if (user.subscriptionExpiry && new Date(user.subscriptionExpiry) > new Date()) {
-            throw new ApiError(400, 'User is already on an active PRO plan');
-        }
-    }
-
-    // 2. Process Payment via Stripe
-    // We charge $25.00 (2500 cents)
-    const amount = 25.00;
-    const amountInCents = 2500;
-
-    let paymentIntent;
+    // B. Attach Payment Method to Customer
     try {
-        paymentIntent = await stripe.paymentIntents.create({
-            amount: amountInCents,
-            currency: 'usd',
-            payment_method: paymentMethodId,
-            confirm: true, // Attempt to charge immediately
-            description: `Pro Plan Upgrade - User ${user.email}`,
-            automatic_payment_methods: {
-                enabled: true,
-                allow_redirects: 'never', // Simplifies API testing; assumes card works without redirect (3DS)
-            },
+        await stripe.paymentMethods.attach(paymentMethodId, {
+            customer: customerId,
+        });
+
+        // Is card ko default bana do
+        await stripe.customers.update(customerId, {
+            invoice_settings: { default_payment_method: paymentMethodId },
         });
     } catch (error) {
-        throw new ApiError(400, `Payment failed: ${error.message}`);
+        throw new ApiError(400, `Card Error: ${error.message}`);
     }
 
-    if (paymentIntent.status !== 'succeeded') {
-        throw new ApiError(400, `Payment not successful. Status: ${paymentIntent.status}`);
+    // C. Create Subscription (Asli Recurring Logic)
+    try {
+        const subscription = await stripe.subscriptions.create({
+            customer: customerId,
+            items: [{ price: process.env.STRIPE_PRICE_ID_MONTHLY }], // .env se Price ID lo
+            expand: ['latest_invoice.payment_intent'],
+
+            metadata: { userId: userId.toString(), type: 'SUBSCRIPTION_UPGRADE' }
+        });
+
+        // Status check karo
+        const status = subscription.status; // active, incomplete, trialing
+        const clientSecret = subscription.latest_invoice.payment_intent?.client_secret;
+
+        return {
+            subscriptionId: subscription.id,
+            status: status,
+            clientSecret: clientSecret, // Frontend ko chahiye agar 3D secure (OTP) ki zaroorat ho
+            message: 'Subscription created. Waiting for payment confirmation.'
+        };
+
+    } catch (error) {
+        throw new ApiError(400, `Subscription Failed: ${error.message}`);
     }
-
-    // 3. Create Transaction Record
-    const transaction = await prisma.transaction.create({
-        data: {
-            userId,
-            amount,
-            currency: 'USD',
-            type: 'SUBSCRIPTION_PAYMENT',
-            status: 'COMPLETED',
-            paymentMethod: 'STRIPE',
-            description: `Pro Plan - Monthly (Stripe ID: ${paymentIntent.id})`,
-        },
-    });
-
-    // 4. Update User Subscription
-    // Set expiry to 30 days from now
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 30);
-
-    const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: {
-            subscriptionPlan: 'PRO',
-            subscriptionStatus: 'ACTIVE',
-            subscriptionExpiry: expiryDate,
-        },
-        select: {
-            subscriptionPlan: true,
-            subscriptionStatus: true,
-            subscriptionExpiry: true,
-        },
-    });
-
-    return { subscription: updatedUser, transaction };
 };
 
+// 3. Cancel Subscription (Stripe se cancel karo)
 const cancelSubscription = async (userId) => {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
 
-    if (!user) {
-        throw new ApiError(404, 'User not found');
+    if (!user || !user.stripeSubscriptionId) {
+        throw new ApiError(400, 'No active subscription found to cancel.');
     }
 
-    if (user.subscriptionPlan !== 'PRO') {
-        throw new ApiError(400, 'User is not on a paid plan');
+    try {
+        // Cancel at period end (User ne paise diye hain to mahina pura hone do)
+        const deletedSubscription = await stripe.subscriptions.update(
+            user.stripeSubscriptionId,
+            { cancel_at_period_end: true }
+        );
+
+        return {
+            message: 'Subscription will be cancelled at the end of the billing period.',
+            cancelAt: new Date(deletedSubscription.cancel_at * 1000)
+        };
+    } catch (error) {
+        throw new ApiError(500, `Stripe Error: ${error.message}`);
     }
-
-    // Downgrade immediately or at end of period?
-    // Use case: "Cancel" usually sets status to "CANCELLED" but keeps "PRO" until expiry.
-    // For simplicity, we will simulate immediate cancellation or just marking status.
-
-    const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: {
-            subscriptionStatus: 'CANCELLED',
-            // We keep the plan as PRO until expiry, checking that logical date elsewhere
-        },
-        select: {
-            subscriptionPlan: true,
-            subscriptionStatus: true,
-            subscriptionExpiry: true,
-        },
-    });
-
-    return updatedUser;
 };
 
 export default {

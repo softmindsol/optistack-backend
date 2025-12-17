@@ -51,6 +51,8 @@ model User {
   subscriptionPlan     String   @default("FREE") // "FREE", "PRO"
   subscriptionStatus   String   @default("ACTIVE") // "ACTIVE", "EXPIRED", "CANCELLED"
   subscriptionExpiry   DateTime?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
   
   transactions         Transaction[]
 
